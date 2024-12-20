@@ -1,5 +1,7 @@
 # Transaction Dependencies Prefetching Experiment
 
+Try out the demo at https://fuel-wallet-prefetch-experiment-75ug.vercel.app/
+
 ## Goal
 
 Eliminate the several seconds of waiting seen after the user clicking the "Mint" button, and the transaction being submitted to the chain. This delay is caused by the contract call being prepared, which involves fetching the transaction dependencies from the chain. This delay is often even longer than the time between the tx being submitted and the tx being confirmed. This makes our chain look way slower than it actually is.
