@@ -3,9 +3,7 @@ import { providerUrl } from "../lib.tsx";
 export default function Info() {
   return (
     <div id="text" className="col-span-2 px-4 py-4">
-      <h1 className="pb-1 pt-0 text-3xl font-medium">
-        Fuel SRC20 Minter
-      </h1>
+      <h1 className="pb-1 pt-0 text-3xl font-medium">Fuel SRC20 Minter</h1>
       <p>
         This dapp was bootstrapped with the{" "}
         <a
@@ -28,14 +26,7 @@ export default function Info() {
           {providerUrl}
         </a>
       </p>
-      <a
-        href="https://docs.fuel.network/docs"
-        target="_blank"
-        className="inline-block mt-6 text-green-500/80 transition-colors hover:text-green-500 w-full"
-        rel="noreferrer"
-      >
-        Fuel Docs
-      </a>
+      <p className="mt-8">ONLY works with the Burner Wallet</p>
       <a
         href="https://github.com/dhaiwat10/fuel-src20-minter"
         target="_blank"

@@ -8,6 +8,8 @@ Eliminate the several seconds of waiting seen after the user clicking the "Mint"
 
 This delay can be eliminated by prefetching the dependencies beforehand.
 
+(very very basic implementation, lots of rough edges)
+
 ```ts
 import { FunctionInvocationScope, ScriptTransactionRequest } from "fuels";
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -82,8 +84,34 @@ On an average, I saw a performance gain of about 2-3 seconds on the testnet.
 
 We can consider providing `usePrepareContractCall` with the `@fuels/react` package, so that anyone can opt-in to this pre-fetching feature easily, without causing any breaking changes.
 
+```tsx
+// Potential usage example
+import { usePrepareContractCall } from "@fuels/react";
+
+const { preparedTx, reprepareTx } = usePrepareContractCall({
+    contract,
+    method: 'mint',
+    args: [...]
+});
+
+const onMintPress = async () => {
+    await wallet.sendTransaction(preparedTx);
+};
+
+```
+
 If we don't want to do that now, we can at least consider adding this into our cookbook for the TS SDK docs.
 
 ### Things to Note
 
-This only works for the burner wallet as of now, since we probably need to make some small tweaks to other connectors to support this feature.
+- This only works for the burner wallet as of now, since we probably need to make some small tweaks to other connectors to support this feature.
+
+- This is a very very basic implementation with lots of rough edges.
+
+### Edge Cases
+ 
+- There could be a case where a user spends some UTXOs which were included as a part of the transaction dependencies after they have been fetched. This would cause the `sendTransaction` method to fail. In this case, we can simply refetch the dependencies again. 
+
+- We will need to re-fetch the dependencies whenever the user does a transaction, in case there are multiple transaction calls present on the page.
+
+- We will need to re-fetch dependencies wehnever the user changes any of the inputs to the contract call as well. This can be optimised for max perf, and the input can easily be debounced. But something to keep in mind for now.
