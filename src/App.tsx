@@ -5,7 +5,6 @@ import Button from "./components/Button";
 import Info from "./components/Info";
 import Contract from "./components/Contract";
 import { isTestnet, providerUrl } from "./lib.tsx";
-
 function App() {
   const { connect } = useConnectUI();
   const { isConnected, refetch } = useIsConnected();

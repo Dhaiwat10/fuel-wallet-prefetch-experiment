@@ -1,28 +1,89 @@
-# `create-fuels-lite`
+# Transaction Dependencies Prefetching Experiment
 
-This is an example Fuel dapp that mints an SRC20 token to the user's wallet.
+## Goal
 
-Testnet contract ID: `0x3c8ff9eb5ea5ab033e44d6d90795b12b5544498b08612c44458264e83a0bef01`
+Eliminate the several seconds of waiting seen after the user clicking the "Mint" button, and the transaction being submitted to the chain. This delay is caused by the contract call being prepared, which involves fetching the transaction dependencies from the chain. This delay is often even longer than the time between the tx being submitted and the tx being confirmed. This makes our chain look way slower than it actually is.
 
-## Run Locally
+## Proposed Solution
 
-1. Start the Fuel development server. This server will start a local Fuel node and provide hot-reloading for your smart contracts.
+This delay can be eliminated by prefetching the dependencies beforehand.
 
-```bash
-npm run fuels:dev
+```ts
+import { FunctionInvocationScope, ScriptTransactionRequest } from "fuels";
+import { useEffect, useState, useCallback, useRef } from "react";
+
+export const usePrepareContractCall = (fn?: FunctionInvocationScope) => {
+  const [preparedTxReq, setPreparedTxReq] =
+    useState<ScriptTransactionRequest>();
+  const fnRef = useRef(fn);
+
+  useEffect(() => {
+    if (fn && fn !== fnRef.current) {
+      fnRef.current = fn;
+      (async () => {
+        const txReq = await fn.fundWithRequiredCoins();
+        setPreparedTxReq(txReq);
+      })();
+    }
+  }, [fn]);
+
+  const reprepareTxReq = useCallback(async () => {
+    if (!fnRef.current) {
+      return;
+    }
+    const txReq = await fnRef.current.fundWithRequiredCoins();
+    setPreparedTxReq(txReq);
+  }, []);
+
+  return {
+    preparedTxReq,
+    reprepareTxReq,
+  };
+};
 ```
 
-2. Start the Next.js development server.
+```tsx
+const mintFn = useMemo(() => {
+    if (!contract || !wallet || !tokenDecimals) return undefined;
+    return contract.functions.mint(
+      {
+        Address: {
+          bits: wallet.address.toB256(),
+        },
+      },
+      ZeroBytes32,
+      bn.parseUnits("5", tokenDecimals)
+    );
+  }, [contract, wallet, tokenDecimals]);
 
-```bash
-npm run dev
+const { preparedTxReq, reprepareTxReq } = usePrepareContractCall(mintFn);
+
+const onMintPress = async () => {
+    await wallet.sendTransaction(preparedTxReq);
+};
 ```
 
-## Deploying to Testnet
 
-To learn how to deploy your Fuel dApp to the testnet, you can follow our [Deploying to Testnet](https://docs.fuel.network/docs/fuels-ts/creating-a-fuel-dapp/deploying-a-dapp-to-testnet/) guide.
+In this experiment, I tried calling the `mint` function on this SRC20 contract with two different approaches: one that uses pre-fetched tx dependencies, and one that doesn't.
 
-## Learn More
+### How does prefetching dependencies work?
 
-- [Fuel TS SDK docs](https://docs.fuel.network/docs/fuels-ts/)
-- [Fuel Docs Portal](https://docs.fuel.network/)
+Whenever the page loads, the `usePrepareContractCall` hook is called. This hook returns a `preparedTxReq` object, which is a `ScriptTransactionRequest` object. The `ScriptTransactionRequest` object contains the transaction dependencies that are needed to execute the contract call. These dependencies are fetched from the chain using the `fundWithRequiredCoins` method.
+
+Whenever the user clicks the "Mint" button, instead of `call`ing the contract funciton directly (which would cause the delay), we simply do a `wallet.sendTransaction(preparedTxReq)`. We can do this because the transaction request is already prepared and ready to be sent.
+
+If we don't prefetch the dependencies, the `call` method will do that when it's called, and the user will see the delay.
+
+### Numbers
+
+On an average, I saw a performance gain of about 2-3 seconds on the testnet.
+
+### Next Steps
+
+We can consider providing `usePrepareContractCall` with the `@fuels/react` package, so that anyone can opt-in to this pre-fetching feature easily, without causing any breaking changes.
+
+If we don't want to do that now, we can at least consider adding this into our cookbook for the TS SDK docs.
+
+### Things to Note
+
+This only works for the burner wallet as of now, since we probably need to make some small tweaks to other connectors to support this feature.
