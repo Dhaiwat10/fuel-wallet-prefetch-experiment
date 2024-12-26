@@ -6,7 +6,14 @@ import { TestContract } from "../sway-api";
 import Button from "./Button";
 import { isLocal, contractId } from "../lib.tsx";
 import { useNotification } from "../hooks/useNotification.tsx";
-import { bn, BN, createAssetId, hexlify, WalletUnlocked, ZeroBytes32 } from "fuels";
+import {
+  bn,
+  BN,
+  createAssetId,
+  hexlify,
+  WalletUnlocked,
+  ZeroBytes32,
+} from "fuels";
 import { useTxTimer } from "../hooks/useTxTimer.ts";
 import { toast } from "react-toastify";
 import { usePrepareContractCall } from "../hooks/usePrepareContractCall.ts";
@@ -29,9 +36,10 @@ export default function Contract() {
 
   const { wallet, refetch } = useWallet();
 
-  const { balance: walletETHBalance } = useBalance({
-    address: wallet?.address.toB256(),
-  });
+  // const { balance: walletETHBalance } = useBalance({
+  //   address: wallet?.address.toB256(),
+  // });
+  const walletETHBalance = bn.parseUnits("0", 18);
 
   const { startTimer, stopTimer, timerDuration } = useTxTimer();
   const {
@@ -96,24 +104,24 @@ export default function Contract() {
         return;
       }
 
-      console.log(preparedTxReq);
+      startTimer();
 
       if (!preparedTxReq) {
         toast.error("Error preparing transaction");
         return;
       }
 
-      console.log()
+      console.log();
 
-      const signedTransaction = await (wallet['_connector']['_currentConnector'].burnerWallet as WalletUnlocked).signTransaction(preparedTxReq);
+      const signedTransaction = await (
+        wallet["_connector"]["_currentConnector"].burnerWallet as WalletUnlocked
+      ).signTransaction(preparedTxReq);
 
       preparedTxReq.updateWitnessByOwner(wallet.address, signedTransaction);
 
       const encodedTx = hexlify(preparedTxReq.toTransactionBytes());
 
       transactionSubmitNotification("Minting 5 $DHAI");
-
-      startTimer();
 
       const mintTx = await awaitTransactionStatus(
         "https://testnet.fuel.network/v1/graphql-sub",
@@ -192,6 +200,24 @@ export default function Contract() {
     <>
       <div>
         <div className="flex flex-col items-center justify-between dark:text-zinc-50">
+          {walletETHBalance?.lte(0) && (
+            <div className="flex flex-col items-center justify-between dark:text-zinc-50 mb-8">
+              <span className="text-center text-xl">
+                ‼️ You don't have any ETH in your wallet. Please get some ETH from
+                the{" "}
+                <a
+                  href={`https://faucet-testnet.fuel.network/?address=${wallet?.address.toB256()}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-green-500/80 transition-colors hover:text-green-500"
+                >
+                  faucet
+                </a>{" "}
+                and refresh the page.
+              </span>
+            </div>
+          )}
+
           <Button
             onClick={mintTokens}
             className="w-1/3 mx-auto text-3xl"
@@ -221,24 +247,6 @@ export default function Contract() {
           </Button>
         </div>
       </div>
-
-      {walletETHBalance?.lte(0) && (
-        <div className="flex flex-col items-center justify-between dark:text-zinc-50">
-          <span className="text-center">
-            It looks like you don't have any ETH in your wallet. Please get some
-            ETH from the{" "}
-            <a
-              href={`https://faucet-testnet.fuel.network/?address=${wallet?.address.toB256()}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-green-500/80 transition-colors hover:text-green-500"
-            >
-              faucet
-            </a>{" "}
-            and refresh the page.
-          </span>
-        </div>
-      )}
 
       {timerDuration > 0 && (
         <div className="text-center text-sm text-gray-500">
