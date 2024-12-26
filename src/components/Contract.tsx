@@ -36,10 +36,9 @@ export default function Contract() {
 
   const { wallet, refetch } = useWallet();
 
-  // const { balance: walletETHBalance } = useBalance({
-  //   address: wallet?.address.toB256(),
-  // });
-  const walletETHBalance = bn.parseUnits("0", 18);
+  const { balance: walletETHBalance } = useBalance({
+    address: wallet?.address.toB256(),
+  });
 
   const { startTimer, stopTimer, timerDuration } = useTxTimer();
   const {
