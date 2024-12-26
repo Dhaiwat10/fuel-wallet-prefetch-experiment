@@ -6,10 +6,11 @@ import { TestContract } from "../sway-api";
 import Button from "./Button";
 import { isLocal, contractId } from "../lib.tsx";
 import { useNotification } from "../hooks/useNotification.tsx";
-import { bn, BN, createAssetId, ZeroBytes32 } from "fuels";
+import { bn, BN, createAssetId, hexlify, WalletUnlocked, ZeroBytes32 } from "fuels";
 import { useTxTimer } from "../hooks/useTxTimer.ts";
 import { toast } from "react-toastify";
 import { usePrepareContractCall } from "../hooks/usePrepareContractCall.ts";
+import { awaitTransactionStatus } from "../utils.ts";
 
 export default function Contract() {
   const { disconnect } = useDisconnect();
@@ -90,7 +91,6 @@ export default function Contract() {
   const mintTokens = async () => {
     try {
       setIsLoading(true);
-      startTimer();
 
       if (!wallet || !contract) {
         return;
@@ -103,18 +103,29 @@ export default function Contract() {
         return;
       }
 
-      const mintTx = await wallet.sendTransaction(preparedTxReq);
+      console.log()
+
+      const signedTransaction = await (wallet['_connector']['_currentConnector'].burnerWallet as WalletUnlocked).signTransaction(preparedTxReq);
+
+      preparedTxReq.updateWitnessByOwner(wallet.address, signedTransaction);
+
+      const encodedTx = hexlify(preparedTxReq.toTransactionBytes());
 
       transactionSubmitNotification("Minting 5 $DHAI");
 
-      await mintTx.waitForResult();
+      startTimer();
+
+      const mintTx = await awaitTransactionStatus(
+        "https://testnet.fuel.network/v1/graphql-sub",
+        encodedTx,
+        fetch
+      );
+
+      console.log(mintTx);
+
+      // await mintTx.waitForResult();
 
       // refetch balance
-      const balance = await wallet.getBalance(
-        createAssetId(contractId, ZeroBytes32).bits
-      );
-      setTokenBalance(balance);
-
       transactionSuccessNotification("Minted 5 $DHAI");
 
       setIsLoading(false);
@@ -123,6 +134,12 @@ export default function Contract() {
     } finally {
       setIsLoading(false);
       stopTimer();
+
+      const balance = await wallet!.getBalance(
+        createAssetId(contractId, ZeroBytes32).bits
+      );
+      setTokenBalance(balance);
+
       await reprepareTxReq();
     }
   };
