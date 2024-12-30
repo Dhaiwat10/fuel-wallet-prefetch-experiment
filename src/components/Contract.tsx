@@ -202,8 +202,8 @@ export default function Contract() {
           {walletETHBalance?.lte(0) && (
             <div className="flex flex-col items-center justify-between dark:text-zinc-50 mb-8">
               <span className="text-center text-xl">
-                ‼️ You don't have any ETH in your wallet. Please get some ETH from
-                the{" "}
+                ‼️ You don't have any ETH in your wallet. Please get some ETH
+                from the{" "}
                 <a
                   href={`https://faucet-testnet.fuel.network/?address=${wallet?.address.toB256()}`}
                   target="_blank"
@@ -250,24 +250,26 @@ export default function Contract() {
       {timerDuration > 0 && (
         <div className="text-center text-sm text-gray-500">
           <span className="text-gray-500">
-            Transaction (with optimisation) took {timerDuration} ms
-          </span>
+            Transaction (with optimisation) took
+          </span>{" "}
+          <span className="text-green-500">{timerDuration} ms ⚡️</span>
         </div>
       )}
 
       {timerDuration2 > 0 && (
         <div className="text-center text-sm text-gray-500">
           <span className="text-gray-500">
-            Transaction (without optimisation) took {timerDuration2} ms
+            Transaction (without optimisation) took{" "}
+            <span className="text-white">{timerDuration2} ms</span>
           </span>
         </div>
       )}
 
       {timerDuration > 0 && timerDuration2 > 0 && !isLoading && !isLoading2 && (
-        <div className="text-center text-sm text-gray-500">
-          <span className="text-gray-500">
-            Perf gain with optimisation:{" "}
-            {(timerDuration2 - timerDuration).toFixed(2)}ms
+        <div className="text-center text-sm text-gray-500 font-bold">
+          <span className="text-white">Perf gain with optimisation: </span>
+          <span className="text-green-500">
+            {(timerDuration2 - timerDuration).toFixed(2)}ms ⚡️⚡️
           </span>
         </div>
       )}

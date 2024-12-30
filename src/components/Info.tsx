@@ -3,7 +3,7 @@ import { providerUrl } from "../lib.tsx";
 export default function Info() {
   return (
     <div id="text" className="col-span-2 px-4 py-4">
-      <h1 className="pb-1 pt-0 text-3xl font-medium">Fuel SRC20 Minter</h1>
+      <h1 className="pb-1 pt-0 text-3xl font-medium">Fuel Speed Test ⚡️</h1>
       <p>
         This dapp was bootstrapped with the{" "}
         <a
@@ -26,14 +26,22 @@ export default function Info() {
           {providerUrl}
         </a>
       </p>
-      <p className="mt-8">ONLY works with the Burner Wallet</p>
       <a
-        href="https://github.com/dhaiwat10/fuel-src20-minter"
+        href="https://github.com/dhaiwat10/fuel-wallet-prefetch-experiment"
         target="_blank"
         className="inline-block mt-2 text-green-500/80 transition-colors hover:text-green-500 w-full"
         rel="noreferrer"
       >
-        Repo Link
+        Link to Repo
+      </a>
+
+      <a
+        href="https://hackmd.io/@dhaiwat10/SkzRttFBkg"
+        target="_blank"
+        className="inline-block mt-2 text-green-500/80 transition-colors hover:text-green-500 w-full"
+        rel="noreferrer"
+      >
+        Link to Guide
       </a>
     </div>
   );
