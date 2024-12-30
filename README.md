@@ -1,6 +1,6 @@
 # Transaction Dependencies Prefetching Experiment
 
-Try out the demo at https://fuel-wallet-prefetch-experiment-75ug.vercel.app/
+Try out the demo at https://fuel-wallet-prefetch-experiment.vercel.app/
 
 ## Goal
 
