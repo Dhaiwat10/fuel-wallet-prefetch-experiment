@@ -10,7 +10,8 @@ export const useTxTimer = () => {
     // first set the timer to zero
     setTimerDuration(0);
 
-    startTimeRef.current = Date.now() - timerDuration;
+    startTimeRef.current = Date.now() - 0;
+
     setIsTimerRunning(true);
   };
 
